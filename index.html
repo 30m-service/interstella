@@ -1,0 +1,2125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인터스텔라 — 우주로 보내는 편지</title>
+<style>
+  @font-face {
+    font-family: 'Paperlogy';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2024-09-themostakkim@1.0/Paperlogy-4Regular.woff2') format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Paperlogy';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2024-09-themostakkim@1.0/Paperlogy-3Light.woff2') format('woff2');
+    font-weight: 300; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Paperlogy';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2024-09-themostakkim@1.0/Paperlogy-5Medium.woff2') format('woff2');
+    font-weight: 500; font-style: normal; font-display: swap;
+  }
+
+  :root {
+    --bg: #03040d;
+    --bg2: #07091a;
+    --surface: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: rgba(255,255,255,0.85);
+    --muted: rgba(255,255,255,0.4);
+    --hint: rgba(255,255,255,0.2);
+    --accent: #7f77dd;
+    --accent2: #a89edc;
+    --teal: #7fcfaa;
+    --amber: #e8b86d;
+    --serif: 'Paperlogy', serif;
+    --sans: 'Paperlogy', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #stars-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0; border-bottom: 0.5px solid var(--border);
+  }
+  .logo { font-family: var(--serif); font-size: 17px; font-weight: 400; color: var(--text); letter-spacing: 0.04em; }
+  .logo span { color: var(--accent2); }
+  .nav-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .btn { background: transparent; border: 0.5px solid var(--border2); color: var(--muted); font-family: var(--sans); font-size: 12px; padding: 7px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #9088e8; border-color: #9088e8; color: #fff; }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* HERO */
+  #hero { text-align: center; padding: 80px 0 60px; }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 0.15em; color: var(--teal); margin-bottom: 24px; }
+  .hero-title { font-family: var(--serif); font-size: 32px; font-weight: 300; line-height: 1.6; color: var(--text); margin-bottom: 16px; }
+  .hero-title em { color: var(--accent2); font-style: normal; }
+  .hero-sub { font-size: 14px; color: var(--muted); line-height: 1.9; margin-bottom: 40px; }
+  .hero-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* FEED */
+  #feed-screen { padding: 28px 0; }
+  .feed-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .feed-title { font-size: 13px; color: var(--muted); letter-spacing: 0.06em; }
+  .letter-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 22px 24px; margin-bottom: 12px;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .letter-card:hover { border-color: var(--border2); }
+  .letter-to { font-size: 11px; color: var(--teal); letter-spacing: 0.08em; margin-bottom: 12px; }
+  .letter-body { font-family: var(--serif); font-size: 14px; line-height: 1.9; color: rgba(255,255,255,0.75); margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .letter-meta { display: flex; align-items: center; justify-content: space-between; }
+  .letter-planet { font-size: 11px; color: var(--muted); }
+  .letter-planet span { color: var(--accent2); }
+  .resonance-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: transparent; border: 0.5px solid var(--border);
+    color: var(--muted); font-size: 11px; font-family: var(--sans);
+    padding: 4px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+  }
+  .resonance-btn:hover, .resonance-btn.active { border-color: var(--teal); color: var(--teal); }
+  .resonance-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* 감정 반응 3종 — 별빛 / 공명 / 증폭 */
+  .reaction-group { display: flex; gap: 6px; flex-wrap: wrap; opacity: 0; transform: translateY(6px); transition: opacity 0.5s, transform 0.5s; }
+  .reaction-group.reveal { opacity: 1; transform: translateY(0); }
+  .reaction-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: transparent; border: 0.5px solid var(--border);
+    color: var(--muted); font-size: 11px; font-family: var(--sans);
+    padding: 5px 11px; border-radius: 20px; cursor: pointer; transition: all 0.25s;
+  }
+  .reaction-btn:hover { border-color: var(--border2); color: var(--text); }
+  .reaction-btn[data-type="star"].active { border-color: #e8b830; color: #e8b830; background: rgba(232,184,48,0.08); }
+  .reaction-btn[data-type="resonance"].active { border-color: var(--teal); color: var(--teal); background: rgba(127,207,170,0.08); }
+  .reaction-btn[data-type="boost"].active { border-color: var(--accent); color: var(--accent); background: rgba(127,119,221,0.08); }
+  .reaction-count { opacity: 0.7; font-size: 10px; }
+  .reaction-feedback {
+    font-size: 11px; color: var(--teal); margin-top: 8px; opacity: 0;
+    transition: opacity 0.5s; font-family: var(--sans);
+  }
+  .reaction-feedback.show { opacity: 1; }
+
+  /* 받은 반응 요약 (표시 전용 — 내 편지 상세화면) */
+  .reaction-summary {
+    display: flex; gap: 14px; font-size: 11px; color: var(--muted); font-family: var(--sans);
+  }
+  .reaction-summary-item { display: flex; align-items: center; gap: 4px; }
+
+  /* 신호 발신 (답장) — 신호 수신 화면 전용 */
+  #signal-reply-wrap { max-width: 420px; margin: 0 auto 18px; text-align: left; opacity: 0; transform: translateY(6px); transition: opacity 0.5s, transform 0.5s; }
+  #signal-reply-wrap.reveal { opacity: 1; transform: translateY(0); }
+  .signal-reply-label { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 8px; font-family: var(--sans); }
+  .signal-reply-row { display: flex; gap: 8px; align-items: flex-end; }
+  #signal-reply-input {
+    flex: 1; background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: var(--serif); font-size: 13px;
+    padding: 9px 12px; outline: none; resize: none; height: 38px; line-height: 1.6;
+    transition: border-color 0.2s, height 0.2s;
+  }
+  #signal-reply-input:focus { border-color: var(--accent); height: 72px; }
+  .signal-reply-send {
+    font-family: var(--sans); font-size: 11px; padding: 9px 14px;
+    background: var(--surface); border: 0.5px solid var(--border2); color: var(--text);
+    cursor: pointer; border-radius: 8px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
+  }
+  .signal-reply-send:hover { border-color: var(--accent); color: var(--accent); }
+  .signal-reply-sent { font-size: 11px; color: var(--teal); margin-top: 8px; opacity: 0; transition: opacity 0.5s; font-family: var(--sans); }
+  .signal-reply-sent.show { opacity: 1; }
+
+  /* WRITE */
+  #write-screen { padding: 32px 0; }
+  .write-header { margin-bottom: 28px; }
+  .write-title { font-family: var(--serif); font-size: 20px; font-weight: 300; color: var(--text); margin-bottom: 6px; }
+  .write-sub { font-size: 12px; color: var(--muted); }
+  .field-group { margin-bottom: 20px; }
+  .field-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 8px; }
+  .field-input {
+    width: 100%; background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 12px 14px; color: var(--text);
+    font-family: var(--sans); font-size: 13px; outline: none; transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--accent); }
+  .field-input::placeholder { color: var(--hint); }
+  textarea.field-input { resize: none; line-height: 1.8; font-family: var(--serif); font-size: 14px; min-height: 220px; }
+  .visibility-row { display: flex; gap: 8px; margin-bottom: 24px; }
+  .vis-btn { flex: 1; background: var(--surface); border: 0.5px solid var(--border); color: var(--muted); font-size: 12px; font-family: var(--sans); padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .vis-btn.selected { border-color: var(--accent); color: var(--accent2); background: rgba(127,119,221,0.08); }
+  .vis-btn .vis-title { font-weight: 500; margin-bottom: 2px; }
+  .vis-btn .vis-desc { font-size: 10px; color: var(--hint); }
+  .vis-btn.selected .vis-desc { color: var(--muted); }
+
+  /* COUNTDOWN */
+  #countdown-screen { padding: 60px 0; text-align: center; }
+  .cd-title { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--text); margin-bottom: 12px; }
+  .cd-sub { font-size: 13px; color: var(--muted); margin-bottom: 48px; line-height: 1.8; }
+  .cd-num { font-size: 72px; font-weight: 300; color: var(--accent2); font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 8px; }
+  .cd-unit { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 40px; }
+  .cd-cancel { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; font-family: var(--sans); }
+  .cd-cancel:hover { color: var(--text); }
+
+  /* LETTER DETAIL — 전체화면 우주 + 떠있는 편지 카드 */
+  .detail-fullscreen {
+    position: fixed; inset: 0; padding: 0; max-width: none; margin: 0;
+    z-index: 5; display: none;
+  }
+  .detail-fullscreen.active { display: block; }
+  #timeline-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .detail-overlay-top {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 6;
+    padding: 24px 20px 0;
+    display: flex; flex-direction: column; align-items: flex-start;
+    pointer-events: none;
+  }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted);
+    background: rgba(8,9,18,0.6); backdrop-filter: blur(6px);
+    border: 1px solid var(--border); border-radius: 20px; padding: 7px 14px;
+    cursor: pointer; font-family: var(--sans); margin-bottom: 14px; transition: all 0.2s;
+    pointer-events: auto;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .detail-letter-card {
+    pointer-events: auto;
+    max-width: 420px; width: 100%;
+    background: rgba(8,9,18,0.78); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .detail-letter-card:hover { background: rgba(8,9,18,0.88); }
+  .detail-to { font-size: 11px; color: var(--teal); letter-spacing: 0.1em; margin-bottom: 10px; }
+  .detail-body {
+    font-family: var(--serif); font-size: 14px; line-height: 1.85; color: rgba(255,255,255,0.82);
+    margin-bottom: 14px; white-space: pre-wrap;
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .detail-letter-card.expanded .detail-body { -webkit-line-clamp: unset; }
+  .detail-actions { display: flex; gap: 8px; }
+
+  /* AUTH */
+  #auth-screen { padding: 60px 0; max-width: 380px; margin: 0 auto; }
+  .auth-title { font-family: var(--serif); font-size: 22px; font-weight: 300; text-align: center; margin-bottom: 8px; }
+  .auth-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 32px; }
+  .auth-form { display: flex; flex-direction: column; gap: 12px; }
+  .auth-or { text-align: center; font-size: 12px; color: var(--hint); margin: 4px 0; }
+  .btn-google { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px; background: var(--surface); border: 0.5px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .btn-google:hover { border-color: var(--border2); background: rgba(255,255,255,0.07); }
+  .auth-toggle { text-align: center; font-size: 12px; color: var(--muted); margin-top: 16px; }
+  .auth-toggle a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+  .auth-error { font-size: 12px; color: #f09595; text-align: center; min-height: 16px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(20,22,40,0.95); border: 0.5px solid var(--border2);
+    color: var(--text); font-size: 13px; padding: 10px 20px; border-radius: 20px;
+    opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* SIGNAL */
+  #signal-overlay {
+    position: fixed; inset: 0; background: #03040d; z-index: 50;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #signal-overlay.show { display: flex; }
+  #signal-canvas-full { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #signal-close-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 60;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    background: rgba(8,9,18,0.7); border: 0.5px solid var(--border2); border-radius: 50%;
+    color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  #signal-close-btn:hover { color: var(--text); border-color: var(--accent); }
+  .signal-content {
+    position: relative; z-index: 1; text-align: center;
+    max-width: 480px; width: 100%;
+    background: rgba(8,9,18,0.8); backdrop-filter: blur(10px);
+    border: 0.5px solid var(--border2); border-radius: 16px;
+    padding: 36px 32px;
+  }
+  .signal-from { font-size: 11px; letter-spacing: 0.12em; color: var(--teal); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .signal-from::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: sigBlink 1.2s infinite; }
+  @keyframes sigBlink { 0%,100%{opacity:1} 50%{opacity:.25} }
+  .signal-text { font-family: var(--serif); font-size: 16px; line-height: 1.95; color: rgba(255,255,255,0.88); margin-bottom: 20px; min-height: 60px; }
+  .signal-planet { font-size: 11px; color: var(--muted); margin-bottom: 24px; padding-top: 14px; border-top: 0.5px solid var(--border); }
+  .signal-close { font-size: 12px; color: var(--muted); background: none; border: 0.5px solid var(--border2); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-family: var(--sans); margin-top: 6px; }
+
+  /* LAUNCH OVERLAY */
+  #launch-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 80;
+    display: none; align-items: center; justify-content: center;
+  }
+  #launch-overlay.show { display: flex; }
+  #launch-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .launch-msg {
+    position: relative; z-index: 2; font-family: var(--sans);
+    font-size: 13px; letter-spacing: 0.1em; color: var(--accent2);
+    opacity: 0; transition: opacity 0.8s; text-align: center;
+  }
+
+  .empty-state { text-align: center; padding: 60px 0; color: var(--muted); font-size: 13px; line-height: 1.9; }
+  .loading { text-align: center; padding: 40px 0; color: var(--hint); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<div class="app">
+  <nav>
+    <div class="logo" onclick="showScreen('home')" style="cursor:pointer">인터<span>스텔라</span></div>
+    <div class="nav-right">
+      <span id="nav-user" style="font-size:12px;color:var(--muted)"></span>
+      <button class="btn" id="signal-receive-btn" onclick="receiveRandomSignal()" style="font-size:11px;padding:6px 14px;border-color:rgba(127,207,170,0.3);color:var(--teal);">◉ 신호 수신</button>
+      <button class="btn" id="nav-mine-btn" onclick="showScreen('mine')" style="display:none">내 편지함</button>
+      <button class="btn" id="nav-auth-btn" onclick="showScreen('auth')">로그인</button>
+      <button class="btn btn-primary" id="nav-write-btn" onclick="showScreen('write')" style="display:none">편지 쓰기</button>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <div id="home-screen" class="screen active">
+    <div id="hero">
+      <div class="hero-eyebrow">LETTERS TO SPACE</div>
+      <div class="hero-title">받는 이 없이 쓴 편지가<br><em>우주를 항해합니다</em></div>
+      <div class="hero-sub">떠나간 사람에게, 오지 않을 누군가에게, 그냥 허공에.<br>편지는 발사된 순간부터 행성들을 지나 멀어집니다.</div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="handleWriteClick()">편지 쓰기</button>
+        <button class="btn" onclick="showScreen('feed')">흘러가는 편지들</button>
+      </div>
+      <div style="margin-top:18px;">
+        <button class="btn" onclick="receiveRandomSignal()" style="font-size:11px;padding:7px 16px;border-color:rgba(127,207,170,0.3);color:var(--teal);">◉ 우주로부터 온 무작위 신호 수신하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEED -->
+  <div id="feed-screen" class="screen">
+    <div class="feed-header">
+      <span class="feed-title">우주를 떠도는 중</span>
+      <button class="btn btn-primary" onclick="handleWriteClick()" style="font-size:11px;padding:6px 14px">편지 쓰기</button>
+    </div>
+    <div id="letters-list"><div class="loading">편지를 불러오는 중...</div></div>
+  </div>
+
+  <!-- MY LETTERS -->
+  <div id="mine-screen" class="screen">
+    <div class="feed-header">
+      <span class="feed-title">내가 보낸 편지</span>
+      <button class="btn btn-primary" onclick="handleWriteClick()" style="font-size:11px;padding:6px 14px">편지 쓰기</button>
+    </div>
+    <div id="mine-letters-list"><div class="loading">편지를 불러오는 중...</div></div>
+  </div>
+
+  <!-- WRITE -->
+  <div id="write-screen" class="screen">
+    <div class="write-header">
+      <div class="write-title">편지를 씁니다</div>
+      <div class="write-sub">발사된 편지는 수정할 수 없습니다</div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">이 편지가 향하는 곳</div>
+      <input class="field-input" id="letter-to" type="text" placeholder="하늘 어딘가에 있을 당신에게">
+    </div>
+    <div class="field-group">
+      <textarea class="field-input" id="letter-body" placeholder="편지를 쓰세요..."></textarea>
+    </div>
+    <div class="field-label" style="margin-bottom:8px">공개 여부</div>
+    <div class="visibility-row">
+      <div class="vis-btn selected" id="vis-public" onclick="selectVis('public')">
+        <div class="vis-title">전체 공개</div>
+        <div class="vis-desc">누구나 읽고 공명할 수 있어요</div>
+      </div>
+      <div class="vis-btn" id="vis-private" onclick="selectVis('private')">
+        <div class="vis-title">보이저 편지</div>
+        <div class="vis-desc">나만 보는 항적. 혼자 날아가요</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="launchLetter()">우주로 발사하기</button>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown-screen" class="screen">
+    <div id="cd-normal">
+      <div class="cd-title">편지가 곧 발사됩니다</div>
+      <div class="cd-sub">마음이 바뀌셨다면 아직 취소할 수 있어요.<br>발사된 편지는 수정되지 않습니다.</div>
+      <div class="cd-num" id="cd-number">3</div>
+      <div class="cd-unit">초 후 발사</div>
+      <button class="cd-cancel" onclick="cancelLaunch()">취소하고 돌아가기</button>
+    </div>
+    <div id="cd-retry" style="display:none;">
+      <div class="cd-title" style="color:#e8a878;">신호가 우주에 닿지 못했어요</div>
+      <div class="cd-sub" id="cd-retry-msg">연결이 불안정해서 편지가 발사되지 못했습니다.<br>다시 시도하시겠어요?</div>
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:28px; flex-wrap:wrap;">
+        <button class="btn btn-primary" style="padding:12px 28px;" onclick="retrySend()">다시 발사 시도</button>
+        <button class="cd-cancel" onclick="cancelLaunch()">편지함으로 돌아가기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL : 전체화면 우주 + 떠있는 편지 카드 -->
+  <div id="detail-screen" class="screen detail-fullscreen">
+    <canvas id="timeline-canvas"></canvas>
+
+    <div class="detail-overlay-top">
+      <button class="back-btn" onclick="showScreen('feed')">← 돌아가기</button>
+      <div class="detail-letter-card" id="detail-letter-card" onclick="toggleLetterCard()">
+        <div class="detail-to" id="detail-to"></div>
+        <div class="detail-body" id="detail-body"></div>
+        <div class="detail-actions">
+          <div class="reaction-summary" id="detail-reaction-summary">
+            <span class="reaction-summary-item">✦ <span id="detail-cnt-star">0</span></span>
+            <span class="reaction-summary-item">◎ <span id="detail-cnt-resonance">0</span></span>
+            <span class="reaction-summary-item">↑ <span id="detail-cnt-boost">0</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div id="auth-screen" class="screen">
+    <div class="auth-title" id="auth-title">인터스텔라</div>
+    <div class="auth-sub" id="auth-sub">편지를 쓰려면 로그인이 필요해요</div>
+    <div class="auth-form">
+      <button class="btn-google" onclick="signInGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google로 계속하기
+      </button>
+      <div class="auth-or">또는 이메일로</div>
+      <input class="field-input" id="auth-email" type="email" placeholder="이메일">
+      <input class="field-input" id="auth-password" type="password" placeholder="비밀번호">
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" id="auth-submit-btn" onclick="submitAuth()">로그인</button>
+    </div>
+    <div class="auth-toggle"><a onclick="toggleAuthMode()">계정이 없으신가요? 회원가입</a></div>
+  </div>
+</div>
+
+<!-- LAUNCH OVERLAY -->
+<div id="launch-overlay">
+  <canvas id="launch-canvas"></canvas>
+  <div class="launch-msg" id="launch-msg"></div>
+</div>
+
+<!-- SIGNAL OVERLAY -->
+<div id="signal-overlay">
+  <canvas id="signal-canvas-full"></canvas>
+  <button id="signal-close-btn" onclick="closeSignal()">✕</button>
+  <div class="signal-content">
+    <div class="signal-from" id="signal-from">신호 수신 중</div>
+    <div class="signal-text" id="signal-text"></div>
+
+    <div id="signal-reactions" class="reaction-group" style="display:none;justify-content:center;margin-bottom:14px;">
+      <button class="reaction-btn" data-type="star" onclick="reactSignal('star')">
+        ✦ 별빛 <span class="reaction-count" id="signal-cnt-star">0</span>
+      </button>
+      <button class="reaction-btn" data-type="resonance" onclick="reactSignal('resonance')">
+        ◎ 공명 <span class="reaction-count" id="signal-cnt-resonance">0</span>
+      </button>
+      <button class="reaction-btn" data-type="boost" onclick="reactSignal('boost')">
+        ↑ 증폭 <span class="reaction-count" id="signal-cnt-boost">0</span>
+      </button>
+    </div>
+    <div class="reaction-feedback" id="signal-reaction-feedback" style="text-align:center;margin-bottom:14px;"></div>
+
+    <div id="signal-reply-wrap" style="display:none;">
+      <div class="signal-reply-label">↗ 신호 발신 — 익명 · 수신 여부 미보장</div>
+      <div class="signal-reply-row">
+        <textarea id="signal-reply-input" placeholder="이 편지 방향으로 신호를 보냅니다…"></textarea>
+        <button class="signal-reply-send" onclick="sendSignalReply()">발신</button>
+      </div>
+      <div class="signal-reply-sent" id="signal-reply-sent"></div>
+    </div>
+
+    <div class="signal-planet" id="signal-planet"></div>
+    <button class="signal-close" onclick="closeSignal()">닫기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = 'https://cdlplhomkrwnybedesgz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbHBsaG9ta3J3bnliZWRlc2d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NDQ0ODUsImV4cCI6MjA5NzIyMDQ4NX0.74HVmy1p1MZaYtI_kEDSj6I9QKl7smRINg8amQdMHEs';
+window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+
+let currentUser = null;
+let currentLetter = null;
+let visibilityChoice = 'public';
+let authMode = 'login';
+let cdTimer = null, cdCount = 3;
+let pendingLetter = null;
+
+// 12개 이정표 (실제 행성 시각화 포함)
+const MILESTONES = [
+  { key:'earth',     name:'지구',         days:0,    xR:0.00, dist:'0 AU',        color:'#3A8FE8', size:20, type:'planet',    desc:'편지가 발사되었습니다. 지구를 떠납니다.' },
+  { key:'moon',      name:'달',           days:3,    xR:0.06, dist:'1.3광초',     color:'#A09888', size:11, type:'moon',      desc:'달 궤도를 지나며 지구를 돌아봅니다.' },
+  { key:'mars',      name:'화성',         days:60,   xR:0.15, dist:'0.5 AU',      color:'#C1440E', size:14, type:'planet',    desc:'붉은 행성 화성을 지납니다. 더 깊은 어둠으로 나아갑니다.' },
+  { key:'orion',     name:'오리온자리',   days:110,  xR:0.24, dist:'1,344 광년',  color:'#7AAEEE', size:9,  type:'star',      desc:'오리온자리 방향으로 편지가 흘러갑니다. 사냥꾼의 허리띠 세 별이 반짝입니다.' },
+  { key:'jupiter',   name:'목성',         days:160,  xR:0.34, dist:'5.2 AU',      color:'#C88B3A', size:32, type:'planet',    desc:'목성의 거대한 폭풍 대적점이 편지를 맞이합니다.' },
+  { key:'saturn',    name:'토성',         days:210,  xR:0.44, dist:'9.5 AU',      color:'#D4C77A', size:26, type:'planet',    desc:'토성의 고리가 편지의 길을 조용히 비춥니다.' },
+  { key:'cassio',    name:'카시오페이아', days:250,  xR:0.54, dist:'550 광년',    color:'#B090E8', size:8,  type:'star',      desc:'카시오페이아자리를 지납니다. W자 별빛이 길을 안내합니다.' },
+  { key:'uranus',    name:'천왕성',       days:285,  xR:0.63, dist:'19.2 AU',     color:'#5EC8C8', size:18, type:'planet',    desc:'기울어진 행성 천왕성 — 옆으로 누운 채 편지를 바라봅니다.' },
+  { key:'andromeda', name:'안드로메다',   days:320,  xR:0.73, dist:'250만 광년',  color:'#C8B0F8', size:0,  type:'galaxy',    desc:'안드로메다 은하를 바라봅니다. 2조 개의 별이 희미하게 빛납니다.' },
+  { key:'b612',      name:'B612',         days:350,  xR:0.83, dist:'?',           color:'#EEC96A', size:13, type:'fairy',     desc:'어린왕자의 별 B612를 지납니다. 장미 한 송이가 보입니다.' },
+  { key:'voyager',   name:'보이저 1호',   days:360,  xR:0.92, dist:'160 AU',      color:'#8888AA', size:0,  type:'voyager',   desc:'인간이 만든 가장 먼 피조물을 스쳐 지납니다. 성간 우주로 진입합니다.' },
+  { key:'blackhole', name:'블랙홀',       days:365,  xR:1.00, dist:'사건의 지평선',color:'#E05585', size:18, type:'blackhole', desc:'1년간의 여정 끝, 편지는 블랙홀의 사건 지평선에 닿습니다. 시간이 멈춥니다.' },
+];
+
+function toLog(days) {
+  days = Math.max(0, Math.min(days, 365));
+  for (let i=0; i<MILESTONES.length-1; i++) {
+    const a = MILESTONES[i], b = MILESTONES[i+1];
+    if (days >= a.days && days <= b.days) {
+      const r = b.days > a.days ? (days-a.days)/(b.days-a.days) : 1;
+      return a.xR + r*(b.xR-a.xR);
+    }
+  }
+  return 1;
+}
+
+// STARS + 우주 배경 (멀티레이어 + 유성 + 성운)
+const starsCv = document.getElementById('stars-canvas');
+const sCtx = starsCv.getContext('2d');
+let stars = [], meteors = [], bgTick = 0;
+
+function initStars() {
+  starsCv.width = window.innerWidth; starsCv.height = window.innerHeight;
+  const W = starsCv.width, H = starsCv.height;
+  stars = [];
+  // 레이어 0: 미세 배경 별
+  for (let i=0;i<260;i++) stars.push({
+    x: Math.random()*W, y: Math.random()*H,
+    r: Math.random()*0.6+0.15, a: Math.random()*0.3+0.05,
+    tw: Math.random()*Math.PI*2, ts: 0.004+Math.random()*0.008, col:null
+  });
+  // 레이어 1: 중간 별
+  for (let i=0;i<120;i++) stars.push({
+    x: Math.random()*W, y: Math.random()*H,
+    r: Math.random()*0.9+0.3, a: Math.random()*0.45+0.12,
+    tw: Math.random()*Math.PI*2, ts: 0.006+Math.random()*0.01, col:null
+  });
+  // 레이어 2: 밝은 색온도 별
+  for (let i=0;i<28;i++) {
+    const rnd=Math.random();
+    const col = rnd<.15?'190,200,255':rnd<.3?'200,215,255':rnd<.7?null:rnd<.86?'255,225,190':'255,200,170';
+    stars.push({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.4+0.6, a: Math.random()*0.6+0.25,
+      tw: Math.random()*Math.PI*2, ts: 0.008+Math.random()*0.012, col
+    });
+  }
+  meteors = [];
+  for (let i=0;i<4;i++) spawnMeteor(true);
+}
+
+function spawnMeteor(init){
+  const W=starsCv.width, H=starsCv.height;
+  meteors.push({
+    x: Math.random()*W*1.3 - W*0.15, y: Math.random()*H*0.55,
+    len: 50+Math.random()*110, spd: 2.5+Math.random()*5,
+    ang: Math.PI*0.13+Math.random()*0.15,
+    al: 0.3+Math.random()*0.35,
+    life: init?Math.random():0, maxL: 0.5+Math.random()*0.4,
+    w: 0.4+Math.random()*0.7
+  });
+}
+
+function animStars() {
+  bgTick++;
+  const W=starsCv.width, H=starsCv.height;
+  sCtx.clearRect(0,0,W,H);
+
+  // 은하수 밴드 (은은한 대각 그라디언트)
+  const band = sCtx.createLinearGradient(0,H*0.1,W,H*0.9);
+  band.addColorStop(0,'transparent');
+  band.addColorStop(0.45,'rgba(45,35,75,0.10)');
+  band.addColorStop(0.55,'rgba(55,42,85,0.08)');
+  band.addColorStop(1,'transparent');
+  sCtx.fillStyle = band; sCtx.fillRect(0,0,W,H);
+
+  // 별
+  stars.forEach(s => {
+    s.tw += s.ts;
+    const a = s.a*(0.65+0.35*Math.sin(s.tw));
+    sCtx.beginPath(); sCtx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sCtx.fillStyle = s.col ? `rgba(${s.col},${a*0.85})` : `rgba(210,205,240,${a})`;
+    sCtx.fill();
+  });
+
+  // 유성
+  for (let i=meteors.length-1;i>=0;i--){
+    const m=meteors[i];
+    m.life += 0.006+Math.random()*0.003;
+    m.x += m.spd*Math.cos(m.ang); m.y += m.spd*Math.sin(m.ang);
+    if (m.life>m.maxL || m.x>W+150 || m.y>H+80){ meteors.splice(i,1); spawnMeteor(false); continue; }
+    const fade = m.life<0.1 ? m.life/0.1 : (m.life>m.maxL*0.65 ? (m.maxL-m.life)/(m.maxL*0.35) : 1);
+    const al = m.al*fade;
+    if (al<0.02) continue;
+    const tx = m.x-Math.cos(m.ang)*m.len, ty = m.y-Math.sin(m.ang)*m.len;
+    const gr = sCtx.createLinearGradient(m.x,m.y,tx,ty);
+    gr.addColorStop(0,`rgba(230,225,255,${al})`);
+    gr.addColorStop(0.3,`rgba(200,210,255,${al*0.4})`);
+    gr.addColorStop(1,'rgba(200,210,255,0)');
+    sCtx.beginPath(); sCtx.moveTo(m.x,m.y); sCtx.lineTo(tx,ty);
+    sCtx.strokeStyle=gr; sCtx.lineWidth=m.w; sCtx.stroke();
+    sCtx.beginPath(); sCtx.arc(m.x,m.y,m.w*1.4,0,Math.PI*2);
+    sCtx.fillStyle=`rgba(245,242,255,${al*0.85})`; sCtx.fill();
+  }
+
+  requestAnimationFrame(animStars);
+}
+initStars(); animStars();
+window.addEventListener('resize', initStars);
+
+// SCREEN
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name+'-screen').classList.add('active');
+  if (name === 'feed') loadFeed();
+  if (name === 'mine') {
+    if (!currentUser) { showScreen('auth'); return; }
+    loadMyLetters();
+  }
+  if (name === 'write' && !currentUser) { showScreen('auth'); return; }
+}
+
+function handleWriteClick() {
+  if (!currentUser) { showScreen('auth'); return; }
+  showScreen('write');
+}
+
+// AUTH
+async function checkSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await setUser(session.user);
+}
+
+async function setUser(user) {
+  currentUser = user;
+  document.getElementById('nav-auth-btn').style.display = 'none';
+  document.getElementById('nav-write-btn').style.display = 'block';
+  document.getElementById('nav-mine-btn').style.display = 'block';
+  const nick = user.email ? user.email.split('@')[0] : '여행자';
+  document.getElementById('nav-user').textContent = nick;
+  await ensureProfile(user);
+}
+
+async function ensureProfile(user) {
+  try {
+    const data = await restRequest(
+      `profiles?select=id&id=eq.${user.id}`,
+      'GET', null, { timeoutMs: 6000 }
+    );
+    if (!data || data.length === 0) {
+      const nick = user.email ? user.email.split('@')[0] : '별자리 여행자';
+      await restRequest('profiles', 'POST', { id: user.id, nickname: nick }, { prefer: 'return=minimal', timeoutMs: 6000 });
+    }
+  } catch(e) {
+    console.error('[진단] ensureProfile 실패 (계속 진행):', e);
+  }
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('auth-title').textContent = authMode === 'login' ? '인터스텔라' : '회원가입';
+  document.getElementById('auth-sub').textContent = authMode === 'login' ? '편지를 쓰려면 로그인이 필요해요' : '별자리 이름으로 시작해요';
+  document.getElementById('auth-submit-btn').textContent = authMode === 'login' ? '로그인' : '가입하기';
+  document.querySelector('.auth-toggle a').textContent = authMode === 'login' ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인';
+  document.getElementById('auth-error').textContent = '';
+}
+
+async function submitAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pw = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력해주세요'; return; }
+  errEl.textContent = '';
+  if (authMode === 'login') {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+    if (error) { errEl.textContent = '이메일 또는 비밀번호가 올바르지 않아요'; return; }
+    await setUser(data.user); showScreen('feed'); showToast('환영해요');
+  } else {
+    const { data, error } = await sb.auth.signUp({ email, password: pw });
+    if (error) { errEl.textContent = error.message; return; }
+    if (data.user) { await setUser(data.user); showScreen('feed'); showToast('가입 완료! 우주로 첫 편지를 보내보세요'); }
+    else errEl.textContent = '이메일을 확인해주세요';
+  }
+}
+
+async function signInGoogle() {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session) await setUser(session.user);
+});
+
+// VISIBILITY
+function selectVis(v) {
+  visibilityChoice = v;
+  document.getElementById('vis-public').classList.toggle('selected', v==='public');
+  document.getElementById('vis-private').classList.toggle('selected', v==='private');
+}
+
+// LAUNCH
+function launchLetter() {
+  const body = document.getElementById('letter-body').value.trim();
+  const to = document.getElementById('letter-to').value.trim();
+  if (!body) { showToast('편지 내용을 써주세요'); return; }
+  if (!currentUser) { showScreen('auth'); return; }
+  pendingLetter = { body, to, is_public: visibilityChoice === 'public' };
+  startCountdown();
+}
+
+function startCountdown() {
+  cdCount = 3;
+  document.getElementById('cd-number').textContent = cdCount;
+  showScreen('countdown');
+  cdTimer = setInterval(() => {
+    cdCount--;
+    document.getElementById('cd-number').textContent = cdCount;
+    if (cdCount <= 0) { clearInterval(cdTimer); sendLetter(); }
+  }, 1000);
+}
+
+function cancelLaunch() {
+  clearInterval(cdTimer);
+  showScreen('write');
+}
+
+// Promise에 타임아웃을 거는 헬퍼
+function withTimeout(promise, ms, label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} 타임아웃 (${ms}ms)`)), ms))
+  ]);
+}
+
+// Supabase JS 라이브러리를 거치지 않는 순수 REST API 직접 호출
+// (라이브러리 내부 상태 충돌로 인한 무한 대기 문제를 우회)
+async function restRequest(path, method, body, opts) {
+  opts = opts || {};
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + (opts.accessToken || SUPABASE_KEY),
+    'Content-Type': 'application/json'
+  };
+  if (opts.prefer) headers['Prefer'] = opts.prefer;
+  if (opts.onConflict) path += (path.includes('?') ? '&' : '?') + 'on_conflict=' + opts.onConflict;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), opts.timeoutMs || 8000);
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    const text = await res.text();
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch(e) {}
+    if (!res.ok) {
+      const err = new Error((json && (json.message || json.error_description)) || ('HTTP ' + res.status));
+      err.status = res.status; err.body = json;
+      throw err;
+    }
+    return json;
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new Error((opts.timeoutMs||8000) + 'ms 타임아웃');
+    throw e;
+  }
+}
+
+function showRetryPanel(errMsg) {
+  document.getElementById('cd-normal').style.display = 'none';
+  document.getElementById('cd-retry').style.display = 'block';
+  document.getElementById('cd-retry-msg').innerHTML =
+    `연결이 불안정해서 편지가 발사되지 못했어요.<br>` +
+    `<span style="font-size:11px;color:var(--muted);opacity:0.7;">(${errMsg})</span><br>` +
+    `다시 시도하시겠어요? 작성하신 내용은 그대로 남아있어요.`;
+  showScreen('countdown');
+}
+
+function retrySend() {
+  document.getElementById('cd-retry').style.display = 'none';
+  document.getElementById('cd-normal').style.display = 'block';
+  sendLetter();
+}
+
+async function sendLetter() {
+  console.log('[진단] sendLetter 시작 (REST 직접 호출 방식)', pendingLetter);
+  if (!pendingLetter) { console.log('[진단] pendingLetter 없음, 중단'); return; }
+
+  // localStorage에서 Supabase 세션을 직접 읽어옴 (라이브러리 우회)
+  let uid = currentUser?.id;
+  let accessToken = SUPABASE_KEY; // RLS가 꺼져있으므로 anon key로도 충분
+
+  try {
+    const storageKey = 'sb-' + new URL(SUPABASE_URL).hostname.split('.')[0] + '-auth-token';
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.access_token) accessToken = parsed.access_token;
+      if (parsed?.user?.id) uid = parsed.user.id;
+    }
+  } catch(e) { console.warn('[진단] localStorage 세션 파싱 실패 (계속 진행):', e); }
+
+  console.log('[진단] uid:', uid);
+  if (!uid) {
+    console.log('[진단] uid 없음, auth로 이동');
+    showToast('로그인이 필요해요 (세션 확인 실패)');
+    showScreen('auth');
+    return;
+  }
+
+  console.log('[진단] profiles upsert 시작 (REST)');
+  try {
+    await restRequest(
+      'profiles',
+      'POST',
+      { id: uid, nickname: (currentUser?.email||'').split('@')[0] || '여행자' },
+      { accessToken, prefer: 'resolution=merge-duplicates,return=minimal', onConflict: 'id', timeoutMs: 6000 }
+    );
+    console.log('[진단] profiles upsert 성공');
+  } catch(e) {
+    console.error('[진단] profiles upsert 실패 (계속 진행):', e);
+  }
+
+  console.log('[진단] letters insert 시작 (REST, 자동 재시도 최대 2회 포함)');
+  let data, lastErr;
+  const MAX_RETRY = 2;
+
+  for (let attempt = 0; attempt <= MAX_RETRY; attempt++) {
+    try {
+      const res = await restRequest(
+        'letters',
+        'POST',
+        {
+          user_id: uid,
+          to_field: pendingLetter.to || null,
+          body: pendingLetter.body,
+          is_public: pendingLetter.is_public,
+          launched_at: new Date().toISOString()
+        },
+        { accessToken, prefer: 'return=representation', timeoutMs: 8000 }
+      );
+      data = Array.isArray(res) ? res[0] : res;
+      console.log(`[진단] letters insert 성공 (시도 ${attempt+1}):`, data);
+      lastErr = null;
+      break;
+    } catch (e) {
+      console.error(`[진단] letters insert 실패 (시도 ${attempt+1}):`, e);
+      lastErr = e;
+    }
+    if (attempt < MAX_RETRY) {
+      console.log(`[진단] ${attempt+1}번째 시도 실패, 잠시 후 재시도...`);
+      showToast(`연결이 지연되고 있어요. 다시 시도 중... (${attempt+1}/${MAX_RETRY})`);
+      await new Promise(r => setTimeout(r, 1200));
+    }
+  }
+
+  if (lastErr) {
+    console.error('편지 저장 최종 실패:', lastErr);
+    showRetryPanel(lastErr.message || '알 수 없는 오류');
+    return;
+  }
+  console.log('[진단] 성공, 발사 이펙트 재생');
+  document.getElementById('letter-body').value = '';
+  document.getElementById('letter-to').value = '';
+  pendingLetter = null;
+  playLaunchEffect(data);
+}
+
+// 발사 이펙트 — 빛이 솟아오르는 연출 후 행성 타임라인으로 전환
+function playLaunchEffect(letter) {
+  const ov = document.getElementById('launch-overlay');
+  const cv = document.getElementById('launch-canvas');
+  const msgEl = document.getElementById('launch-msg');
+  const ctx = cv.getContext('2d');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  const W = cv.width, H = cv.height;
+
+  ov.classList.add('show');
+  msgEl.style.opacity = '0';
+
+  // 빛줄기 7개가 다른 색으로 솟아오름
+  const beams = Array.from({length:7}, (_,i)=>({
+    x: W/2 + (Math.random()-0.5)*90,
+    y: H*0.82,
+    vx: (Math.random()-0.5)*2,
+    vy: -(3+Math.random()*7),
+    trail: [],
+    col: ['#7f77dd','#a89edc','#7fcfaa','#e8b86d','#9088e8','#b4d8ff','#7f77dd'][i]
+  }));
+
+  const msgs = ['대기권 돌파 중', '지구 중력 탈출', '우주로 진입합니다'];
+  let f = 0;
+
+  function frame(){
+    ctx.fillStyle = 'rgba(3,4,13,0.13)';
+    ctx.fillRect(0,0,W,H);
+
+    beams.forEach(b=>{
+      b.x += b.vx; b.y += b.vy; b.vy *= 1.018;
+      b.trail.push({x:b.x,y:b.y});
+      if (b.trail.length>48) b.trail.shift();
+      b.trail.forEach((pt,i)=>{
+        ctx.beginPath(); ctx.arc(pt.x,pt.y,1.7,0,Math.PI*2);
+        ctx.globalAlpha = (i/b.trail.length)*0.55;
+        ctx.fillStyle = b.col; ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(b.x,b.y,3.2,0,Math.PI*2);
+      ctx.fillStyle = b.col; ctx.fill();
+      ctx.beginPath(); ctx.arc(b.x,b.y,13,0,Math.PI*2);
+      ctx.fillStyle = b.col+'18'; ctx.fill();
+    });
+
+    if (f===38){ msgEl.style.opacity='1'; msgEl.textContent = msgs[0]; }
+    if (f===85) msgEl.textContent = msgs[1];
+    if (f===130) msgEl.textContent = msgs[2];
+    f++;
+
+    if (f<195) requestAnimationFrame(frame);
+    else {
+      msgEl.style.opacity = '0';
+      setTimeout(()=>{
+        ov.classList.remove('show');
+        ctx.clearRect(0,0,W,H);
+        // 발사된 편지의 상세화면(행성 타임라인)으로 진입
+        openDetail(letter, true);
+        showToast('편지가 우주로 발사됐어요');
+      }, 600);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// FEED
+async function loadFeed() {
+  const el = document.getElementById('letters-list');
+  el.innerHTML = '<div class="loading">편지를 불러오는 중...</div>';
+
+  let data;
+  try {
+    data = await restRequest(
+      'letters?select=*,resonances(count)&is_public=eq.true&order=launched_at.desc&limit=30',
+      'GET', null, { timeoutMs: 8000 }
+    );
+  } catch (e) {
+    console.error('[진단] loadFeed 실패:', e);
+    el.innerHTML = '<div class="empty-state">편지를 불러오지 못했어요.<br>잠시 후 다시 시도해주세요.</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty-state">아직 편지가 없어요.<br>첫 번째 편지를 우주로 보내보세요.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  const myReactions = await getMyResonances(data.map(l=>l.id));
+  data.forEach(letter => {
+    const days = Math.floor((Date.now() - new Date(letter.launched_at)) / 86400000);
+    const m = getNearestMilestone(days);
+    const count = letter.resonances?.[0]?.count || 0;
+    const myTypes = myReactions.get(letter.id) || new Set();
+    const hasReacted = myTypes.size > 0;
+    const card = document.createElement('div');
+    card.className = 'letter-card';
+    card.innerHTML = `
+      <div class="letter-to">${letter.to_field ? '→ ' + letter.to_field : '→ 허공으로'}</div>
+      <div class="letter-body">${escHtml(letter.body)}</div>
+      <div class="letter-meta">
+        <div class="letter-planet">D+${days} — <span>${m.name} 근방</span></div>
+        <div class="resonance-btn ${hasReacted?'active':''}" style="cursor:default;">
+          <div class="resonance-dot"></div>
+          <span>${count > 0 ? count+'개의 신호' : '신호 보내기'}</span>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => openDetail(letter));
+    el.appendChild(card);
+  });
+}
+
+async function loadMyLetters() {
+  const el = document.getElementById('mine-letters-list');
+  el.innerHTML = '<div class="loading">편지를 불러오는 중...</div>';
+
+  if (!currentUser) {
+    el.innerHTML = '<div class="empty-state">로그인이 필요해요.</div>';
+    return;
+  }
+
+  let data;
+  try {
+    data = await restRequest(
+      `letters?select=*,resonances(count)&user_id=eq.${currentUser.id}&order=launched_at.desc&limit=100`,
+      'GET', null, { timeoutMs: 8000 }
+    );
+  } catch (e) {
+    console.error('[진단] loadMyLetters 실패:', e);
+    el.innerHTML = '<div class="empty-state">편지를 불러오지 못했어요.<br>잠시 후 다시 시도해주세요.</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty-state">아직 보낸 편지가 없어요.<br>첫 번째 편지를 우주로 보내보세요.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  const myReactions = await getMyResonances(data.map(l=>l.id));
+  data.forEach(letter => {
+    const days = Math.floor((Date.now() - new Date(letter.launched_at)) / 86400000);
+    const m = getNearestMilestone(days);
+    const count = letter.resonances?.[0]?.count || 0;
+    const myTypes = myReactions.get(letter.id) || new Set();
+    const hasReacted = myTypes.size > 0;
+    const card = document.createElement('div');
+    card.className = 'letter-card';
+    card.innerHTML = `
+      <div class="letter-to">
+        ${letter.to_field ? '→ ' + letter.to_field : '→ 허공으로'}
+        ${!letter.is_public ? '<span style="margin-left:8px;font-size:10px;color:var(--muted);">· 보이저 편지</span>' : ''}
+      </div>
+      <div class="letter-body">${escHtml(letter.body)}</div>
+      <div class="letter-meta">
+        <div class="letter-planet">D+${days} — <span>${m.name} 근방</span></div>
+        <div class="resonance-btn ${hasReacted?'active':''}" style="cursor:default;">
+          <div class="resonance-dot"></div>
+          <span>${count > 0 ? count+'개의 신호' : '신호 없음'}</span>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => openDetail(letter));
+    el.appendChild(card);
+  });
+}
+
+
+const REACTION_LABELS = {
+  star: { icon: '✦', name: '별빛', msg: '편지가 조금 더 밝아졌습니다' },
+  resonance: { icon: '◎', name: '공명', msg: '같은 마음이 우주를 가로질러 닿습니다' },
+  boost: { icon: '↑', name: '증폭', msg: '편지가 더 멀리 날아갑니다' }
+};
+
+// 내가 이 편지들에 어떤 타입으로 반응했는지: Map<letterId, Set<type>>
+async function getMyResonances(ids) {
+  if (!currentUser || !ids.length) return new Map();
+  try {
+    const idList = ids.map(id => `"${id}"`).join(',');
+    const data = await restRequest(
+      `resonances?select=letter_id,reaction_type&user_id=eq.${currentUser.id}&letter_id=in.(${idList})`,
+      'GET', null, { timeoutMs: 6000 }
+    );
+    const map = new Map();
+    (data||[]).forEach(r => {
+      if (!map.has(r.letter_id)) map.set(r.letter_id, new Set());
+      map.get(r.letter_id).add(r.reaction_type);
+    });
+    return map;
+  } catch(e) {
+    console.error('[진단] getMyResonances 실패:', e);
+    return new Map();
+  }
+}
+
+// 편지별 타입별 반응 개수: { star:n, resonance:n, boost:n }
+async function getReactionCounts(letterId) {
+  try {
+    const data = await restRequest(
+      `resonances?select=reaction_type&letter_id=eq.${letterId}`,
+      'GET', null, { timeoutMs: 6000 }
+    );
+    const counts = { star:0, resonance:0, boost:0 };
+    (data||[]).forEach(r => { if (counts[r.reaction_type] !== undefined) counts[r.reaction_type]++; });
+    return counts;
+  } catch(e) {
+    console.error('[진단] getReactionCounts 실패:', e);
+    return { star:0, resonance:0, boost:0 };
+  }
+}
+
+// 반응 토글 (추가/취소)
+async function toggleReaction(letterId, type) {
+  if (!currentUser) { showScreen('auth'); return null; }
+  try {
+    const existing = await restRequest(
+      `resonances?select=id&letter_id=eq.${letterId}&user_id=eq.${currentUser.id}&reaction_type=eq.${type}`,
+      'GET', null, { timeoutMs: 6000 }
+    );
+    if (existing && existing.length > 0) {
+      await restRequest(
+        `resonances?letter_id=eq.${letterId}&user_id=eq.${currentUser.id}&reaction_type=eq.${type}`,
+        'DELETE', null, { timeoutMs: 6000 }
+      );
+      return false; // 취소됨
+    } else {
+      await restRequest(
+        'resonances', 'POST',
+        { letter_id: letterId, user_id: currentUser.id, reaction_type: type },
+        { prefer: 'return=minimal', timeoutMs: 6000 }
+      );
+      await saveMilestone(letterId, type);
+      return true; // 추가됨
+    }
+  } catch(e) {
+    console.error('[진단] toggleReaction 실패:', e);
+    showToast('처리 중 오류가 발생했어요');
+    return null;
+  }
+}
+
+// 상세화면 반응 버튼
+// 신호 오버레이 반응 버튼
+async function reactSignal(type) {
+  if (!currentSignalLetter) return;
+  const btn = document.querySelector(`#signal-reactions .reaction-btn[data-type="${type}"]`);
+  const cntEl = document.getElementById('signal-cnt-' + type);
+  const added = await toggleReaction(currentSignalLetter.id, type);
+  if (added === null) return;
+  btn.classList.toggle('active', added);
+  const cur = parseInt(cntEl.textContent) || 0;
+  cntEl.textContent = added ? cur+1 : Math.max(0, cur-1);
+  if (added) {
+    const fb = document.getElementById('signal-reaction-feedback');
+    fb.textContent = REACTION_LABELS[type].icon + ' ' + REACTION_LABELS[type].msg;
+    fb.classList.add('show');
+    setTimeout(()=>fb.classList.remove('show'), 3000);
+  }
+}
+
+// 신호 발신 — 익명 답장. 수신 여부는 보장하지 않는 컨셉.
+async function sendSignalReply() {
+  if (!currentSignalLetter) return;
+  if (!currentUser) { closeSignal(); showScreen('auth'); return; }
+  const input = document.getElementById('signal-reply-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const btn = document.querySelector('.signal-reply-send');
+  const originalLabel = btn.textContent;
+  btn.textContent = '전송 중...';
+  btn.style.opacity = '.5';
+
+  try {
+    const days = Math.floor((Date.now() - new Date(currentSignalLetter.launched_at)) / 86400000);
+    const m = getNearestMilestone(days);
+    await restRequest('milestones', 'POST', {
+      letter_id: currentSignalLetter.id,
+      event_type: 'reply',
+      planet_name: m.name,
+      planet_dist: m.dist,
+      days_elapsed: days
+    }, { prefer: 'return=minimal', timeoutMs: 6000 });
+
+    input.value = '';
+    const sentMsg = document.getElementById('signal-reply-sent');
+    sentMsg.textContent = `↗ 신호가 ${m.name} 방향으로 발신되었습니다. 언젠가 닿기를.`;
+    sentMsg.classList.add('show');
+    setTimeout(()=>sentMsg.classList.remove('show'), 4500);
+  } catch(e) {
+    console.error('[진단] sendSignalReply 실패:', e);
+    showToast('신호 발신에 실패했어요');
+  } finally {
+    btn.textContent = originalLabel;
+    btn.style.opacity = '1';
+  }
+}
+
+async function saveMilestone(letterId, eventType) {
+  try {
+    const rows = await restRequest(
+      `letters?select=launched_at&id=eq.${letterId}`,
+      'GET', null, { timeoutMs: 6000 }
+    );
+    const letter = rows && rows[0];
+    if (!letter) return;
+    const days = Math.floor((Date.now() - new Date(letter.launched_at)) / 86400000);
+    const m = getNearestMilestone(days);
+    await restRequest('milestones', 'POST', {
+      letter_id: letterId, event_type: eventType,
+      planet_name: m.name, planet_dist: m.dist, days_elapsed: days
+    }, { prefer: 'return=minimal', timeoutMs: 6000 });
+  } catch(e) {
+    console.error('[진단] saveMilestone 실패 (계속 진행):', e);
+  }
+}
+
+// DETAIL
+async function openDetail(letter, skipWarp) {
+  if (skipWarp) {
+    currentLetter = letter;
+    const days = Math.floor((Date.now() - new Date(letter.launched_at)) / 86400000);
+    document.getElementById('detail-to').textContent = letter.to_field ? '→ ' + letter.to_field : '→ 허공으로';
+    document.getElementById('detail-body').textContent = letter.body;
+    showScreen('detail');
+    drawTimeline(days);
+    loadDetailReactions(letter.id);
+    return;
+  }
+
+  // 워프 효과: 짧은 신호 스캔을 거쳐 상세화면 진입
+  document.getElementById('signal-from').textContent = '좌표 동기화 중 —';
+  document.getElementById('signal-text').textContent = '';
+  document.getElementById('signal-planet').textContent = '';
+  document.getElementById('signal-reactions').style.display = 'none';
+  document.getElementById('signal-reply-wrap').style.display = 'none';
+  document.querySelector('.signal-close').style.display = 'none';
+  document.getElementById('signal-overlay').classList.add('show');
+  startSignalAnim();
+
+  setTimeout(() => {
+    document.getElementById('signal-overlay').classList.remove('show');
+    document.getElementById('signal-from').textContent = '신호 수신 중 —';
+    document.querySelector('.signal-close').style.display = '';
+
+    currentLetter = letter;
+    const days = Math.floor((Date.now() - new Date(letter.launched_at)) / 86400000);
+    document.getElementById('detail-to').textContent = letter.to_field ? '→ ' + letter.to_field : '→ 허공으로';
+    document.getElementById('detail-body').textContent = letter.body;
+    showScreen('detail');
+    drawTimeline(days);
+    loadDetailReactions(letter.id);
+  }, 750);
+}
+
+async function loadDetailReactions(letterId) {
+  const counts = await getReactionCounts(letterId);
+  ['star','resonance','boost'].forEach(type => {
+    document.getElementById('detail-cnt-' + type).textContent = counts[type];
+  });
+}
+
+function getNearestMilestone(days) {
+  let best = MILESTONES[0];
+  for (const m of MILESTONES) { if (days >= m.days) best = m; }
+  return best;
+}
+
+function lH(hex,a){let n=parseInt(hex.slice(1),16);return`rgb(${Math.min(255,(n>>16)+a)},${Math.min(255,((n>>8)&255)+a)},${Math.min(255,(n&255)+a)})`;}
+function dH(hex,a){let n=parseInt(hex.slice(1),16);return`rgb(${Math.max(0,(n>>16)-a)},${Math.max(0,((n>>8)&255)-a)},${Math.max(0,(n&255)-a)})`;}
+
+let tlTick = 0, tlRaf = null, tlCurrentDays = null;
+
+function toggleLetterCard() {
+  document.getElementById('detail-letter-card').classList.toggle('expanded');
+}
+
+window.addEventListener('resize', () => {
+  if (tlCurrentDays !== null && document.getElementById('detail-screen').classList.contains('active')) {
+    drawTimeline(tlCurrentDays);
+  }
+});
+
+function drawPlanetIcon(ctx, m, sx, sy, scale, tick){
+  const s = m.size * scale;
+  if (s<=0 && m.type!=='voyager' && m.type!=='galaxy') return;
+
+  if (m.type==='blackhole'){
+    ctx.save();
+    const hz = ctx.createRadialGradient(sx,sy,0,sx,sy,s*3.2);
+    hz.addColorStop(0,'rgba(220,40,90,0.28)'); hz.addColorStop(0.5,'rgba(150,15,50,0.1)'); hz.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(sx,sy,s*3.2,0,Math.PI*2); ctx.fillStyle=hz; ctx.fill();
+    // 강착원반
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(tick*0.002); ctx.scale(1,0.24);
+    for (let r=0;r<4;r++){
+      ctx.beginPath(); ctx.arc(0,0,s*(1.3+r*0.5),0,Math.PI*2);
+      ctx.strokeStyle = `rgba(${230-r*25},${70-r*10},${110-r*15},${0.5-r*0.1})`;
+      ctx.lineWidth = s*0.26; ctx.stroke();
+    }
+    ctx.restore();
+    // 중심부 (완전한 어둠)
+    ctx.beginPath(); ctx.arc(sx,sy,s,0,Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
+    ctx.beginPath(); ctx.arc(sx,sy,s*1.06,0,Math.PI*2);
+    ctx.strokeStyle='rgba(220,60,100,0.5)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.restore(); return;
+  }
+
+  if (m.type==='galaxy'){
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(-0.4);
+    const hz=ctx.createRadialGradient(0,0,0,0,0,16*scale);
+    hz.addColorStop(0,'rgba(200,176,255,0.35)'); hz.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.ellipse(0,0,16*scale,8*scale,0,0,Math.PI*2); ctx.fillStyle=hz; ctx.fill();
+    for(let arm=0;arm<2;arm++){
+      const ao=arm*Math.PI;
+      for(let i=0;i<16;i++){
+        const ang=ao+i*.3+tick*.006, r2=(1+i*0.5)*scale;
+        const a2=Math.max(0,(1-i/16)*.6);
+        ctx.beginPath(); ctx.arc(Math.cos(ang)*r2,Math.sin(ang)*r2*.44,.5*scale,0,Math.PI*2);
+        ctx.fillStyle=`rgba(210,185,255,${a2})`; ctx.fill();
+      }
+    }
+    ctx.beginPath(); ctx.arc(0,0,2*scale,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,250,245,0.9)'; ctx.fill();
+    ctx.restore(); return;
+  }
+
+  if (m.type==='voyager'){
+    ctx.save(); ctx.translate(sx,sy);
+    ctx.fillStyle='#7688B0'; ctx.fillRect(-2.5*scale,-1*scale,5*scale,2*scale);
+    ctx.strokeStyle='#99AACC'; ctx.lineWidth=0.4*scale;
+    ctx.beginPath(); ctx.moveTo(0,-1*scale); ctx.lineTo(0,-5*scale); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-6*scale,-1*scale); ctx.lineTo(2.5*scale,-1*scale); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2.5*scale,1*scale); ctx.lineTo(-6*scale,1*scale); ctx.stroke();
+    ctx.restore(); return;
+  }
+
+  if (m.type==='star'){
+    ctx.save();
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,s*3.5);
+    g.addColorStop(0,m.color+'AA'); g.addColorStop(.3,m.color+'30'); g.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(sx,sy,s*3.5,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    for(let i=0;i<4;i++){
+      const ang=i*Math.PI/2+tick*.01;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+Math.cos(ang)*s*4,sy+Math.sin(ang)*s*4);
+      ctx.strokeStyle=m.color+'40'; ctx.lineWidth=0.4; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(sx,sy,s*0.7,0,Math.PI*2); ctx.fillStyle=m.color; ctx.fill();
+    ctx.restore(); return;
+  }
+
+  if (m.type==='fairy'){
+    ctx.save();
+    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,s*3);
+    g.addColorStop(0,'rgba(238,200,100,0.45)'); g.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(sx,sy,s*3,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(sx,sy,s*0.7,0,Math.PI*2); ctx.fillStyle='#D4A848'; ctx.fill();
+    ctx.fillStyle='rgba(230,110,110,0.85)';
+    ctx.beginPath(); ctx.arc(sx,sy-s*1.4,1.3,0,Math.PI*2); ctx.fill();
+    ctx.restore(); return;
+  }
+
+  // planet / moon
+  ctx.save();
+  const g2=ctx.createRadialGradient(sx,sy,s*0.3,sx,sy,s*1.8);
+  g2.addColorStop(0,m.color+'35'); g2.addColorStop(1,'transparent');
+  ctx.beginPath(); ctx.arc(sx,sy,s*1.8,0,Math.PI*2); ctx.fillStyle=g2; ctx.fill();
+
+  if (m.key==='saturn'){
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(0.1); ctx.scale(1,0.3);
+    ctx.beginPath(); ctx.arc(0,0,s*1.7,0,Math.PI*2);
+    ctx.strokeStyle=m.color+'70'; ctx.lineWidth=s*0.32; ctx.stroke();
+    ctx.restore();
+  }
+  if (m.key==='uranus'){
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(1.3); ctx.scale(1,0.3);
+    ctx.beginPath(); ctx.arc(0,0,s*1.55,0,Math.PI*2);
+    ctx.strokeStyle=m.color+'60'; ctx.lineWidth=s*0.22; ctx.stroke();
+    ctx.restore();
+  }
+
+  const body = ctx.createRadialGradient(sx-s*0.25,sy-s*0.25,s*0.04,sx,sy,s);
+  body.addColorStop(0, lH(m.color,35));
+  body.addColorStop(1, dH(m.color,45));
+  ctx.beginPath(); ctx.arc(sx,sy,s,0,Math.PI*2); ctx.fillStyle=body; ctx.fill();
+
+  if (m.key==='earth'){
+    ctx.save(); ctx.beginPath(); ctx.arc(sx,sy,s,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle='rgba(40,120,40,0.6)';
+    ctx.beginPath(); ctx.ellipse(sx-s*0.3,sy-s*0.2,s*0.6,s*0.4,0.3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx+s*0.35,sy+s*0.15,s*0.45,s*0.35,0.2,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  if (m.key==='jupiter'){
+    ctx.save(); ctx.beginPath(); ctx.arc(sx,sy,s,0,Math.PI*2); ctx.clip();
+    [-.5,-.2,.1,.4].forEach((off,i)=>{
+      ctx.fillStyle=i%2===0?'rgba(150,95,30,0.4)':'rgba(200,160,80,0.25)';
+      ctx.fillRect(sx-s,sy+off*s-s*.12,s*2,s*.24);
+    });
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/* ════════════════════════════════════════════
+   스크롤 기반 풀스크린 우주 타임라인
+   ════════════════════════════════════════════ */
+let scrollX = 0, tScrollX = 0;
+let tlStars = [], tlMeteors = [];
+let tlConstellations = [], tlClusters = [], tlDustLanes = [];
+let tlNebulaCore = null;
+const TL_WM = () => (window.innerWidth < 768 ? 14 : 6); // 모바일 더 긴 스크롤
+const tlWorldW = () => window.innerWidth * TL_WM();
+const tlMaxScroll = () => tlWorldW() - window.innerWidth;
+
+function tlClamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+// 배경 별자리 8개 — 월드 좌표에 고정, 느린 시차로 흐름
+const CONSTELLATION_DEFS = [
+  { name:'큰곰자리', col:'#AAC8FF', sc:0.06,
+    pts:[[0,0],[.3,.1],[.6,.05],[.9,.15],[1.2,.3],[1.4,.15],[1.6,.2]],
+    lns:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]] },
+  { name:'오리온자리', col:'#B0D0FF', sc:0.05,
+    pts:[[.5,0],[0,.4],[1,.4],[.2,.8],[.5,.75],[.8,.8],[.3,1.3],[.7,1.3]],
+    lns:[[0,1],[0,2],[1,3],[2,5],[3,4],[4,5],[3,6],[5,7]] },
+  { name:'카시오페이아', col:'#D0B8FF', sc:0.045,
+    pts:[[0,.5],[.3,0],[.6,.4],[.9,.1],[1.2,.5]],
+    lns:[[0,1],[1,2],[2,3],[3,4]] },
+  { name:'북두칠성', col:'#AAD8FF', sc:0.055,
+    pts:[[0,.6],[.25,.3],[.5,0],[.75,.1],[1.0,.35],[1.1,.6],[1.0,.85]],
+    lns:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]] },
+  { name:'전갈자리', col:'#FFB8A0', sc:0.05,
+    pts:[[.5,0],[.3,.2],[0,.4],[.1,.7],[.3,.9],[.6,1.0],[.9,.9],[1.1,.7]],
+    lns:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]] },
+  { name:'백조자리', col:'#C8E8FF', sc:0.048,
+    pts:[[.5,0],[.5,.4],[.5,.8],[0,.4],[1,.4],[.3,.65],[.7,.65]],
+    lns:[[0,1],[1,2],[3,1],[1,4],[5,1],[1,6]] },
+  { name:'사자자리', col:'#FFE8A0', sc:0.052,
+    pts:[[0,.3],[.2,0],[.5,.1],[.7,.4],[.5,.6],[.2,.5],[1.0,.5]],
+    lns:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[3,6]] },
+  { name:'처녀자리', col:'#E0C8FF', sc:0.048,
+    pts:[[.5,0],[.3,.3],[0,.5],[.2,.8],[.5,.9],[.8,.8],[1.0,.5],[.7,.3]],
+    lns:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0]] },
+];
+
+function buildTlBackground() {
+  const W = window.innerWidth, H = window.innerHeight;
+  tlStars = [];
+
+  // 레이어 0: 미세 배경 별 (은하수 느낌) — 화면에 완전 고정
+  for (let i=0;i<2400;i++){
+    const inBand = Math.random()<0.4;
+    const bandY = inBand ? 0.25+Math.random()*0.5 : Math.random();
+    tlStars.push({
+      vx:Math.random(), vy:bandY,
+      r:Math.random()*0.45+0.08, a:(inBand?Math.random()*0.26+0.06:Math.random()*0.18+0.03),
+      ph:Math.random()*Math.PI*2, sp:Math.random()*0.15+0.03,
+      col:null
+    });
+  }
+  // 레이어 1: 중간 별
+  for (let i=0;i<900;i++) tlStars.push({
+    vx:Math.random(), vy:Math.random(),
+    r:Math.random()*0.7+0.15, a:Math.random()*0.32+0.08,
+    ph:Math.random()*Math.PI*2, sp:Math.random()*0.3+0.08,
+    col:null
+  });
+  // 레이어 2: 밝은 색온도 별 (회절 십자 대상) — 주황/붉은 별 비중 증가
+  for (let i=0;i<150;i++){
+    const rnd = Math.random();
+    const col = rnd<.06?'#BDD0FF':rnd<.14?'#D8E8FF':rnd<.42?null:rnd<.62?'#FFEEDD':rnd<.80?'#FFC888':'#FF9C6E';
+    tlStars.push({
+      vx:Math.random(), vy:Math.random(),
+      r:Math.random()*1.3+0.5, a:Math.random()*0.55+0.25,
+      ph:Math.random()*Math.PI*2, sp:Math.random()*0.4+0.15,
+      col, diffract: Math.random()<0.35
+    });
+  }
+
+  // 산개성단 4개
+  tlClusters = [];
+  for (let c=0;c<12;c++){
+    const cvx = Math.random(), cvy = (60+Math.random()*(H-120))/H;
+    const r = 26+Math.random()*40;
+    const pts = [];
+    for (let s=0;s<30;s++){
+      const ang = Math.random()*Math.PI*2, d = Math.random()*r;
+      pts.push({ ox:Math.cos(ang)*d, oy:Math.sin(ang)*d, sz:Math.random()*0.7+0.1, a:Math.random()*0.45+0.12,
+        col:Math.random()<0.4?'#D8EEFF':'#FFF8EE' });
+    }
+    tlClusters.push({ vx:cvx, vy:cvy, pts });
+  }
+
+  // 성간 먼지 레인 (화면 고정)
+  tlDustLanes = [];
+  for (let d=0;d<10;d++){
+    const pts = [];
+    let vx = Math.random(), vy = Math.random();
+    for (let p=0;p<10;p++){
+      pts.push({ vx, vy, r:18+Math.random()*50 });
+      vx += 0.05+Math.random()*0.07;
+      vy += (Math.random()-0.5)*0.18;
+    }
+    tlDustLanes.push({ pts, a:0.012+Math.random()*0.02, col:d%2===0?'rgba(18,10,38,':'rgba(8,5,24,' });
+  }
+
+  // 배경 별자리 (화면에 완전 고정 — 뷰포트 비율 좌표 사용)
+  tlConstellations = CONSTELLATION_DEFS.map((def,i) => ({
+    ...def,
+    vx: 0.08 + (i % 4) * 0.26 + Math.random()*0.04,
+    vy: 0.12 + Math.floor(i / 4) * 0.5 + Math.random()*0.08,
+  }));
+
+  // 중심 성운 폭발 (카리나 성운 스타일) — 화면 고정, 밝은 청백색 코어 + 붉은/푸른 가스
+  tlNebulaCore = {
+    vx: 0.25 + Math.random()*0.5,
+    vy: 0.72 + Math.random()*0.13,
+    stars: Array.from({length:120}, () => {
+      const ang = Math.random()*Math.PI*2;
+      const r = Math.pow(Math.random(), 1.8) * 0.16; // 중심에 밀집
+      return {
+        ox: Math.cos(ang)*r, oy: Math.sin(ang)*r*0.75,
+        sz: Math.random()*1.3+0.3,
+        a: Math.random()*0.7+0.2,
+        col: Math.random()<0.25 ? '#FFE8C8' : (Math.random()<0.5?'#CFE6FF':'#FFFFFF')
+      };
+    })
+  };
+
+  tlMeteors = [];
+  for (let i=0;i<7;i++) tlSpawnMeteor(true);
+}
+
+function tlSpawnMeteor(init){
+  const H = window.innerHeight;
+  tlMeteors.push({
+    wx:Math.random()*tlWorldW(), y:Math.random()*H*0.65,
+    len:55+Math.random()*130, spd:3.5+Math.random()*8,
+    ang:Math.PI*0.11+Math.random()*0.14, al:0.45+Math.random()*0.42,
+    life:init?Math.random():0, maxL:0.55+Math.random()*0.42,
+    w:0.4+Math.random()*1.0, px:0.8+Math.random()*0.2
+  });
+}
+
+// 스크롤 이벤트
+let tlWheelBound = false;
+let tlOtherLetters = []; // 우주에 함께 떠다니는 다른 사람들의 편지
+let tlHoveredLetter = null;
+
+function bindTlScroll(){
+  if (tlWheelBound) return;
+  tlWheelBound = true;
+  window.addEventListener('wheel', e=>{
+    if (!document.getElementById('detail-screen').classList.contains('active')) return;
+    e.preventDefault();
+    tScrollX = tlClamp(tScrollX + e.deltaX + e.deltaY*1.4, 0, tlMaxScroll());
+  }, { passive:false });
+  let tx0=0;
+  window.addEventListener('touchstart', e=>{
+    if (!document.getElementById('detail-screen').classList.contains('active')) return;
+    tx0=e.touches[0].clientX;
+  }, { passive:true });
+  window.addEventListener('touchmove', e=>{
+    if (!document.getElementById('detail-screen').classList.contains('active')) return;
+    const dx=tx0-e.touches[0].clientX; tx0=e.touches[0].clientX;
+    tScrollX = tlClamp(tScrollX + dx*1.6, 0, tlMaxScroll());
+  }, { passive:true });
+
+  const cv = document.getElementById('timeline-canvas');
+  cv.addEventListener('mousemove', e=>{
+    if (!document.getElementById('detail-screen').classList.contains('active')) return;
+    tlHoveredLetter = tlFindLetterAt(e.clientX, e.clientY);
+    cv.style.cursor = tlHoveredLetter ? 'pointer' : 'default';
+  });
+  cv.addEventListener('click', e=>{
+    if (!document.getElementById('detail-screen').classList.contains('active')) return;
+    const hit = tlFindLetterAt(e.clientX, e.clientY);
+    if (hit) {
+      currentSignalLetter = hit;
+      const days = Math.floor((Date.now() - new Date(hit.launched_at)) / 86400000);
+      const m = getNearestMilestone(days);
+      showSignal(hit.body, `D+${days} · ${m.name} 근방 · ${m.dist}`, hit.id);
+    }
+  });
+}
+
+function tlFindLetterAt(clientX, clientY) {
+  if (!tlOtherLetters.length) return null;
+  const W = window.innerWidth, H = window.innerHeight, ww = tlWorldW();
+  for (const l of tlOtherLetters) {
+    if (l._sx === undefined) continue;
+    const dist = Math.hypot(clientX - l._sx, clientY - l._sy);
+    if (dist < 16) return l;
+  }
+  return null;
+}
+
+async function loadOtherLetters() {
+  try {
+    const data = await restRequest(
+      'letters?select=id,body,launched_at,to_field&is_public=eq.true&order=launched_at.desc&limit=60',
+      'GET', null, { timeoutMs: 7000 }
+    );
+    tlOtherLetters = (data || []).filter(l => !currentLetter || l.id !== currentLetter.id);
+    // 각 편지에 약간의 수직 오프셋과 색을 랜덤 배정 (화면마다 흩어지도록)
+    const palette = ['#FF6B9D','#4FC3F7','#F5C842','#A78BFA','#5EEAD4','#FF9F7A'];
+    tlOtherLetters.forEach((l,i) => {
+      l._yOff = (Math.sin(i*12.9898)*43758.5453 % 1) * 240 - 120;
+      l._col = palette[i % palette.length];
+      l._bob = Math.random()*Math.PI*2;
+    });
+  } catch(e) {
+    console.error('[진단] loadOtherLetters 실패:', e);
+    tlOtherLetters = [];
+  }
+}
+
+function drawTimeline(days) {
+  tlCurrentDays = days;
+  bindTlScroll();
+  const cv = document.getElementById('timeline-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  if (tlRaf) cancelAnimationFrame(tlRaf);
+  buildTlBackground();
+  loadOtherLetters();
+
+  // 내 편지 위치로 자동 스크롤 (처음 진입 시)
+  const myRatio = toLog(days);
+  const ww = tlWorldW();
+  const myWx = myRatio * (ww - W*0.2) + W*0.1;
+  tScrollX = tlClamp(myWx - W*0.5, 0, tlMaxScroll());
+  scrollX = tScrollX;
+
+  function frame(){
+    tlTick++;
+    scrollX += (tScrollX - scrollX) * 0.09;
+    const prog = tlMaxScroll()>0 ? tlClamp(scrollX/tlMaxScroll(),0,1) : 0;
+    const ww2 = tlWorldW();
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#010108'; ctx.fillRect(0,0,W,H);
+
+    // 은하수 밴드
+    const mwBand = ctx.createLinearGradient(0,H*0.15,W,H*0.85);
+    mwBand.addColorStop(0,'transparent');
+    mwBand.addColorStop(0.2,`rgba(28,18,52,${(0.14).toFixed(3)})`);
+    mwBand.addColorStop(0.45,`rgba(46,32,76,${(0.18).toFixed(3)})`);
+    mwBand.addColorStop(0.6,`rgba(32,20,56,${(0.12).toFixed(3)})`);
+    mwBand.addColorStop(1,'transparent');
+    ctx.fillStyle = mwBand; ctx.fillRect(0,0,W,H);
+
+    // 중심 성운 폭발 (카리나 성운 스타일) — 청백색 코어 + 붉은/푸른 가스 헤이즈
+    if (tlNebulaCore) {
+      const ncx = tlNebulaCore.vx * W, ncy = tlNebulaCore.vy * H;
+      const baseR = Math.min(W,H) * 0.42;
+
+      // 외곽 붉은 가스
+      const redHaze = ctx.createRadialGradient(ncx, ncy, 0, ncx, ncy, baseR*1.3);
+      redHaze.addColorStop(0, 'rgba(150,60,50,0.10)');
+      redHaze.addColorStop(0.5, 'rgba(90,30,40,0.06)');
+      redHaze.addColorStop(1, 'transparent');
+      ctx.fillStyle = redHaze; ctx.fillRect(0,0,W,H);
+
+      // 외곽 푸른 가스
+      const blueHaze = ctx.createRadialGradient(ncx, ncy, 0, ncx, ncy, baseR*1.1);
+      blueHaze.addColorStop(0, 'rgba(70,110,180,0.13)');
+      blueHaze.addColorStop(0.45, 'rgba(50,80,140,0.08)');
+      blueHaze.addColorStop(1, 'transparent');
+      ctx.fillStyle = blueHaze; ctx.fillRect(0,0,W,H);
+
+      // 중심 밝은 코어 (백색~청백색 폭발)
+      const core = ctx.createRadialGradient(ncx, ncy, 0, ncx, ncy, baseR*0.5);
+      core.addColorStop(0, 'rgba(255,250,240,0.55)');
+      core.addColorStop(0.15, 'rgba(220,235,255,0.32)');
+      core.addColorStop(0.4, 'rgba(140,180,230,0.14)');
+      core.addColorStop(1, 'transparent');
+      ctx.fillStyle = core; ctx.fillRect(0,0,W,H);
+
+      // 성운 내부 별 무리 (밀집)
+      tlNebulaCore.stars.forEach(s => {
+        const sx = ncx + s.ox*baseR*2;
+        const sy = ncy + s.oy*baseR*2;
+        const fl = s.a*(0.6+0.4*Math.sin(tlTick*0.01+s.ox*40));
+        ctx.beginPath(); ctx.arc(sx, sy, s.sz, 0, Math.PI*2);
+        ctx.fillStyle = s.col; ctx.globalAlpha = fl; ctx.fill(); ctx.globalAlpha = 1;
+      });
+    }
+
+    // 성간 먼지 레인 (어두운 패치로 은하수를 가림, 화면 고정)
+    tlDustLanes.forEach(dl=>{
+      dl.pts.forEach(p=>{
+        const screenX = p.vx * W;
+        const screenY = p.vy * H;
+        if (screenX < -p.r-20 || screenX > W+p.r+20) return;
+        const g = ctx.createRadialGradient(screenX,screenY,0,screenX,screenY,p.r);
+        g.addColorStop(0, dl.col+dl.a+')');
+        g.addColorStop(1, dl.col+'0)');
+        ctx.fillStyle = g; ctx.fillRect(screenX-p.r,screenY-p.r,p.r*2,p.r*2);
+      });
+    });
+
+    // 산개성단 (화면 고정)
+    tlClusters.forEach(cl=>{
+      const screenX = cl.vx * W;
+      const screenY = cl.vy * H;
+      const haze = ctx.createRadialGradient(screenX,screenY,0,screenX,screenY,50);
+      haze.addColorStop(0,'rgba(200,220,255,0.035)'); haze.addColorStop(1,'transparent');
+      ctx.fillStyle = haze; ctx.fillRect(screenX-50,screenY-50,100,100);
+      cl.pts.forEach(p=>{
+        const tw = tlTick*0.004+p.ox*0.01;
+        const fa = p.a*(0.7+0.3*Math.sin(tw+p.oy*0.008));
+        ctx.beginPath(); ctx.arc(screenX+p.ox, screenY+p.oy, p.sz, 0, Math.PI*2);
+        ctx.globalAlpha = fa; ctx.fillStyle = p.col; ctx.fill(); ctx.globalAlpha=1;
+      });
+    });
+
+    // 배경 별자리 (화면에 완전 고정 — 우주 배경의 일부로, 스크롤해도 움직이지 않음)
+    tlConstellations.forEach(con=>{
+      const screenX = con.vx * W; // 뷰포트 비율 좌표, 스크롤 무관
+      const screenY = con.vy * H;
+      const sc = con.sc * Math.min(W,H);
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = con.col; ctx.lineWidth = 0.5; ctx.setLineDash([2,5]);
+      con.lns.forEach(([a,b])=>{
+        ctx.beginPath();
+        ctx.moveTo(screenX+con.pts[a][0]*sc, screenY+con.pts[a][1]*sc);
+        ctx.lineTo(screenX+con.pts[b][0]*sc, screenY+con.pts[b][1]*sc);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+      con.pts.forEach(([px,py])=>{
+        const sx2 = screenX+px*sc, sy2 = screenY+py*sc;
+        ctx.globalAlpha = 0.26+0.1*Math.sin(tlTick*0.011+sx2*0.008);
+        ctx.beginPath(); ctx.arc(sx2,sy2,1.3,0,Math.PI*2);
+        ctx.fillStyle = con.col; ctx.fill();
+      });
+      ctx.globalAlpha = 0.11;
+      ctx.font = '8px "Paperlogy", sans-serif'; ctx.fillStyle = con.col; ctx.textAlign='center';
+      const cx2 = screenX+(con.pts.reduce((s,p)=>s+p[0],0)/con.pts.length)*sc;
+      const cy2 = screenY+(con.pts.reduce((s,p)=>s+p[1],0)/con.pts.length)*sc-10;
+      ctx.fillText(con.name, cx2, cy2);
+      ctx.textAlign='start'; ctx.restore();
+    });
+
+    // 성운 (스크롤 진행도에 따라)
+    if (prog > 0.2) {
+      const np = (prog-0.2)/0.8;
+      let n = ctx.createRadialGradient(W*0.65,H*0.45,0,W*0.65,H*0.45,W*0.55);
+      n.addColorStop(0,`rgba(60,30,100,${(np*0.13).toFixed(3)})`); n.addColorStop(1,'transparent');
+      ctx.fillStyle=n; ctx.fillRect(0,0,W,H);
+    }
+    if (prog > 0.8) {
+      const bp = (prog-0.8)/0.2;
+      const r = ctx.createRadialGradient(W,H*0.5,0,W,H*0.5,W*0.7);
+      r.addColorStop(0,`rgba(232,184,48,${(bp*0.08).toFixed(3)})`); r.addColorStop(1,'transparent');
+      ctx.fillStyle=r; ctx.fillRect(0,0,W,H);
+    }
+
+    // 별 (화면에 완전 고정 — 스크롤해도 움직이지 않음)
+    tlStars.forEach(s=>{
+      const screenX = s.vx * W;
+      const screenY = s.vy * H;
+      const fl = s.a*(0.5+0.5*Math.sin(tlTick*0.006*s.sp+s.ph));
+      ctx.globalAlpha = fl;
+      if (s.col){
+        ctx.beginPath(); ctx.arc(screenX,screenY,s.r,0,Math.PI*2);
+        ctx.fillStyle = s.col; ctx.fill();
+        if (s.r > 0.9){
+          const sg = ctx.createRadialGradient(screenX,screenY,0,screenX,screenY,s.r*4);
+          sg.addColorStop(0, s.col+'55'); sg.addColorStop(1, s.col+'00');
+          ctx.globalAlpha = fl*0.5;
+          ctx.beginPath(); ctx.arc(screenX,screenY,s.r*4,0,Math.PI*2);
+          ctx.fillStyle = sg; ctx.fill();
+        }
+      } else {
+        ctx.beginPath(); ctx.arc(screenX,screenY,s.r,0,Math.PI*2);
+        ctx.fillStyle = `rgba(212,206,238,${fl})`; ctx.fill();
+      }
+      if (s.diffract && s.r>1.0 && fl>0.28){
+        ctx.globalAlpha = fl*0.22;
+        ctx.strokeStyle = s.col || 'rgba(220,220,255,0.6)'; ctx.lineWidth = 0.4;
+        for (let d=0; d<2; d++){
+          const ang = d*Math.PI*0.5 + tlTick*0.002;
+          ctx.beginPath();
+          ctx.moveTo(screenX-Math.cos(ang)*s.r*6, screenY-Math.sin(ang)*s.r*6);
+          ctx.lineTo(screenX+Math.cos(ang)*s.r*6, screenY+Math.sin(ang)*s.r*6);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    // 유성
+    for (let i=tlMeteors.length-1;i>=0;i--){
+      const m = tlMeteors[i];
+      m.life += 0.007+Math.random()*0.004;
+      m.wx += m.spd*Math.cos(m.ang); m.y += m.spd*Math.sin(m.ang);
+      const sx = m.wx - scrollX*m.px;
+      if (m.life>m.maxL || sx>W+200 || m.y>H+50){ tlMeteors.splice(i,1); tlSpawnMeteor(false); continue; }
+      const fade = m.life<0.1?m.life/0.1:(m.life>m.maxL*0.7?(m.maxL-m.life)/(m.maxL*0.3):1);
+      const al = m.al*fade;
+      if (al<0.02 || sx<-m.len-20) continue;
+      const tx2 = sx-Math.cos(m.ang)*m.len, ty2 = m.y-Math.sin(m.ang)*m.len;
+      const gr = ctx.createLinearGradient(sx,m.y,tx2,ty2);
+      gr.addColorStop(0,`rgba(230,225,255,${al})`); gr.addColorStop(0.3,`rgba(200,210,255,${al*0.5})`); gr.addColorStop(1,'rgba(200,210,255,0)');
+      ctx.beginPath(); ctx.moveTo(sx,m.y); ctx.lineTo(tx2,ty2); ctx.strokeStyle=gr; ctx.lineWidth=m.w; ctx.stroke();
+      ctx.beginPath(); ctx.arc(sx,m.y,m.w*1.2,0,Math.PI*2); ctx.fillStyle=`rgba(240,238,255,${al*0.9})`; ctx.fill();
+    }
+
+    // 레일
+    ctx.save(); ctx.setLineDash([1,14]); ctx.lineWidth=0.4; ctx.strokeStyle='rgba(216,208,245,0.05)';
+    ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+
+    const curM = getNearestMilestone(days);
+    const OFF = [0,-60,55,-50,70,-55,42,-65,58,-48,0,0];
+
+    // 행성들
+    MILESTONES.forEach((m, i) => {
+      const wx = m.xR * (ww2 - W*0.2) + W*0.1;
+      const sx = wx - scrollX;
+      const pad = m.type==='blackhole'||m.type==='galaxy' ? 90 : (m.size||4)*5+40;
+      if (sx < -pad || sx > W+pad) return;
+
+      const dist = Math.abs(sx-W*0.5)/(W*0.6);
+      const al = tlClamp(1-dist*0.4, 0.15, 1);
+      const offset = OFF[i]||0;
+      const sy = H*0.5 + offset;
+      const isPast = days >= m.days;
+      const isCur = curM.key === m.key;
+      const scale = isCur ? 2.4 : (isPast ? 1.8 : 1.2);
+      const rowAbove = offset < 0; // 트랙보다 위에 있는지
+
+      // 트랙과 연결하는 가는 점선
+      if (offset !== 0) {
+        ctx.save();
+        ctx.globalAlpha = al*0.5;
+        ctx.setLineDash([1,4]); ctx.lineWidth=0.5;
+        ctx.strokeStyle = isCur ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)';
+        ctx.beginPath(); ctx.moveTo(sx, H*0.5); ctx.lineTo(sx, sy); ctx.stroke();
+        ctx.setLineDash([]); ctx.restore();
+      }
+
+      ctx.globalAlpha = isPast ? al : al*0.4;
+      drawPlanetIcon(ctx, m, sx, sy, scale, tlTick);
+      ctx.globalAlpha = 1;
+
+      if (isCur){
+        const pulse = 0.5+0.5*Math.sin(tlTick*0.05);
+        ctx.beginPath(); ctx.arc(sx, sy, (m.size||4)*scale*0.55+10+pulse*5, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(168,158,220,${0.55*pulse*al})`; ctx.lineWidth=1; ctx.stroke();
+      }
+
+      // 라벨: 행성이 트랙 위쪽이면 라벨은 더 위로, 아래쪽이면 더 아래로
+      const labelGap = (m.size||4)*scale*0.5 + 16;
+      const labelY = rowAbove ? sy - labelGap : sy + labelGap;
+      const distY = rowAbove ? labelY - 14 : labelY + 14;
+
+      ctx.save();
+      ctx.globalAlpha = al*0.9;
+      ctx.font = `${isCur?'600 13px':'11px'} "Paperlogy", sans-serif`;
+      ctx.fillStyle = isCur ? 'rgba(255,255,255,0.95)' : isPast ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.22)';
+      ctx.textAlign = 'center';
+      // 라벨 배경 (가독성 향상)
+      const tw = ctx.measureText(m.name).width;
+      ctx.fillStyle = 'rgba(2,3,10,0.45)';
+      ctx.fillRect(sx-tw/2-4, labelY-11, tw+8, 15);
+      ctx.fillStyle = isCur ? 'rgba(255,255,255,0.95)' : isPast ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.22)';
+      ctx.fillText(m.name, sx, labelY);
+      if (isCur){
+        ctx.font = '9px "Paperlogy", sans-serif';
+        ctx.fillStyle = 'rgba(168,158,220,0.8)';
+        ctx.fillText(m.dist, sx, distY);
+      }
+      ctx.textAlign='start'; ctx.restore();
+    });
+
+    // 다른 사람들의 편지 — 발송 경과일만큼 우주에 위치
+    tlOtherLetters.forEach(l => {
+      const lDays = Math.max(0, (Date.now() - new Date(l.launched_at)) / 86400000);
+      const lRatio = toLog(lDays);
+      const wx = lRatio * (ww2 - W*0.2) + W*0.1;
+      const sx = wx - scrollX;
+      if (sx < -30 || sx > W+30) { l._sx = undefined; return; }
+      const bob = Math.sin(tlTick*0.02 + l._bob) * 8;
+      const sy = H*0.5 + l._yOff + bob;
+      l._sx = sx; l._sy = sy;
+
+      const isHover = tlHoveredLetter === l;
+      const glow = 0.5+0.3*Math.sin(tlTick*0.03+l._bob);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(sx, sy, (isHover?11:7)*glow, 0, Math.PI*2);
+      ctx.fillStyle = l._col + '22'; ctx.fill();
+      ctx.beginPath(); ctx.arc(sx, sy, isHover?3.2:2, 0, Math.PI*2);
+      ctx.fillStyle = l._col; ctx.globalAlpha = isHover?1:0.75; ctx.fill();
+      ctx.globalAlpha = 1;
+      if (isHover) {
+        ctx.font = '10px "Paperlogy", sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.textAlign = 'center';
+        const preview = (l.body||'').slice(0,18) + ((l.body||'').length>18?'…':'');
+        ctx.fillText(preview, sx, sy-14);
+        ctx.textAlign = 'start';
+      }
+      ctx.restore();
+    });
+
+    // 내 편지 마커
+    {
+      const myWx2 = myRatio * (ww2 - W*0.2) + W*0.1;
+      const sx = myWx2 - scrollX;
+      const glow = 0.6+0.4*Math.sin(tlTick*0.045);
+      if (sx > -40 && sx < W+40) {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(sx, H*0.5, 18*glow, 0, Math.PI*2);
+        ctx.fillStyle='rgba(232,184,48,0.1)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(sx, H*0.5, 6, 0, Math.PI*2);
+        ctx.fillStyle='#e8b830'; ctx.fill();
+        ctx.beginPath(); ctx.arc(sx, H*0.5, 10, 0, Math.PI*2);
+        ctx.strokeStyle=`rgba(232,184,48,${0.5*glow})`; ctx.lineWidth=1.2; ctx.stroke();
+        for (let p=0;p<7;p++){
+          const ang=(tlTick*0.02+p*Math.PI*2/7)%(Math.PI*2);
+          const r=14+Math.sin(tlTick*0.038+p*1.1)*3.5;
+          ctx.beginPath(); ctx.arc(sx+Math.cos(ang)*r, H*0.5+Math.sin(ang)*r, 0.9, 0, Math.PI*2);
+          ctx.globalAlpha=0.5; ctx.fillStyle='#e8b830'; ctx.fill(); ctx.globalAlpha=1;
+        }
+        ctx.font='600 11px "Paperlogy", sans-serif'; ctx.fillStyle='rgba(232,184,48,0.9)';
+        ctx.textAlign='center'; ctx.fillText('내 편지', sx, H*0.5-22);
+        ctx.textAlign='start';
+        ctx.restore();
+      } else if (sx < 50) {
+        ctx.save(); ctx.globalAlpha=0.7; ctx.font='600 11px "Paperlogy", sans-serif';
+        ctx.fillStyle='#e8b830'; ctx.textAlign='left';
+        ctx.fillText('← 내 편지', 16, H*0.5+4); ctx.textAlign='start'; ctx.restore();
+      } else if (sx > W-50) {
+        ctx.save(); ctx.globalAlpha=0.7; ctx.font='600 11px "Paperlogy", sans-serif';
+        ctx.fillStyle='#e8b830'; ctx.textAlign='right';
+        ctx.fillText('내 편지 →', W-16, H*0.5+4); ctx.textAlign='start'; ctx.restore();
+      }
+    }
+
+    // 하단 정보
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.font = '11px "Paperlogy", sans-serif'; ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.textAlign='left';
+    ctx.fillText('D+'+days+' — '+curM.dist+' · '+curM.name+' 근방', 24, H-22);
+    ctx.textAlign='right';
+    ctx.fillText('← 스크롤하여 우주를 탐색 →', W-24, H-22);
+    ctx.textAlign='start';
+    ctx.restore();
+
+    tlRaf = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// SIGNAL — 실제 편지 수신
+let signalQueue = []; // 최근 본 편지 id (중복 방지)
+let currentSignalLetter = null;
+
+async function receiveRandomSignal() {
+  showSignal('', '신호를 탐색하는 중...');
+
+  const searchStart = Date.now();
+  const MIN_SEARCH_MS = 1300; // 최소 탐색 시간 (연출용)
+
+  // 공개 편지 풀 가져오기 (최근 100개)
+  let data;
+  try {
+    data = await restRequest(
+      'letters?select=*&is_public=eq.true&order=launched_at.desc&limit=100',
+      'GET', null, { timeoutMs: 8000 }
+    );
+  } catch(e) {
+    console.error('[진단] receiveRandomSignal 실패:', e);
+    data = null;
+  }
+
+  // 최소 탐색 시간 보장 (너무 빨리 나타나면 "신호를 찾는" 느낌이 사라짐)
+  const elapsed = Date.now() - searchStart;
+  if (elapsed < MIN_SEARCH_MS) {
+    await new Promise(r => setTimeout(r, MIN_SEARCH_MS - elapsed));
+  }
+
+  if (!data || data.length === 0) {
+    document.getElementById('signal-text').textContent = '아직 우주에 떠도는 신호가 없습니다.\n첫 번째 편지를 보내보세요.';
+    document.getElementById('signal-planet').textContent = '';
+    return;
+  }
+
+  const picked = pickMixedSignal(data);
+  if (!picked) {
+    document.getElementById('signal-text').textContent = '신호가 끊겼습니다.\n잠시 후 다시 시도해주세요.';
+    document.getElementById('signal-planet').textContent = '';
+    return;
+  }
+
+  signalQueue.push(picked.id);
+  if (signalQueue.length > 30) signalQueue.shift();
+
+  currentSignalLetter = picked;
+  const days = Math.floor((Date.now() - new Date(picked.launched_at)) / 86400000);
+  const m = getNearestMilestone(days);
+
+  showSignal(picked.body, `D+${days} · ${m.name} 근방 · ${m.dist}`, picked.id);
+}
+
+// 혼합 신호 선택 알고리즘
+// 40% 같은 구간(±15일) · 30% 인접 구간(±45일) · 20% 최근 발사 · 10% 완전 랜덤
+function pickMixedSignal(allLetters) {
+  const unseen = allLetters.filter(l => !signalQueue.includes(l.id));
+  const basePool = unseen.length > 0 ? unseen : allLetters; // 다 봤으면 전체에서 다시
+  if (signalQueue.length > 0 && unseen.length === 0) signalQueue = [];
+
+  // 내 현재 위치(발사한 편지가 있으면 그 경과일, 없으면 스크롤 위치 기준 추정)
+  let myDays = 0;
+  if (tlCurrentDays !== null) myDays = tlCurrentDays;
+
+  const sameZone = basePool.filter(l => {
+    const d = Math.floor((Date.now() - new Date(l.launched_at)) / 86400000);
+    return Math.abs(d - myDays) <= 15;
+  });
+  const nearZone = basePool.filter(l => {
+    const d = Math.floor((Date.now() - new Date(l.launched_at)) / 86400000);
+    return Math.abs(d - myDays) <= 45;
+  });
+  const recent = [...basePool].sort((a,b) => new Date(b.launched_at) - new Date(a.launched_at)).slice(0, Math.max(5, Math.ceil(basePool.length*0.3)));
+
+  const rand = Math.random();
+  let pool;
+  if (rand < 0.40 && sameZone.length > 0) pool = sameZone;
+  else if (rand < 0.70 && nearZone.length > 0) pool = nearZone;
+  else if (rand < 0.90 && recent.length > 0) pool = recent;
+  else pool = basePool;
+
+  if (!pool || pool.length === 0) pool = basePool;
+  if (!pool || pool.length === 0) return null;
+
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function showSignal(text, planet, letterId) {
+  document.getElementById('signal-text').textContent = '';
+  document.getElementById('signal-planet').textContent = '';
+  document.getElementById('signal-overlay').classList.add('show');
+  startSignalAnim();
+
+  // 반응/답장 UI는 일단 숨겨두고, 본문 타이핑이 끝난 뒤에 페이드인
+  const reactWrap = document.getElementById('signal-reactions');
+  const replyWrap = document.getElementById('signal-reply-wrap');
+  if (reactWrap) { reactWrap.style.display = 'none'; reactWrap.classList.remove('reveal'); }
+  if (replyWrap) { replyWrap.style.display = 'none'; replyWrap.classList.remove('reveal'); }
+  document.getElementById('signal-reaction-feedback').textContent = '';
+  document.getElementById('signal-reaction-feedback').classList.remove('show');
+  const replyInput = document.getElementById('signal-reply-input');
+  if (replyInput) replyInput.value = '';
+  const replySent = document.getElementById('signal-reply-sent');
+  if (replySent) { replySent.textContent = ''; replySent.classList.remove('show'); }
+
+  if (letterId) loadSignalReactions(letterId);
+
+  if (text) {
+    setTimeout(() => typeText('signal-text', text, () => {
+      document.getElementById('signal-planet').textContent = planet;
+      // 타이핑 완료 후 반응/답장 패널 등장
+      if (letterId) {
+        if (reactWrap) { reactWrap.style.display = 'flex'; requestAnimationFrame(()=>reactWrap.classList.add('reveal')); }
+        if (replyWrap) { replyWrap.style.display = 'block'; requestAnimationFrame(()=>replyWrap.classList.add('reveal')); }
+      }
+    }), 700);
+  } else {
+    document.getElementById('signal-planet').textContent = planet;
+  }
+}
+
+async function loadSignalReactions(letterId) {
+  const counts = await getReactionCounts(letterId);
+  ['star','resonance','boost'].forEach(type => {
+    const el = document.getElementById('signal-cnt-' + type);
+    if (el) el.textContent = counts[type];
+    const btn = document.querySelector(`#signal-reactions .reaction-btn[data-type="${type}"]`);
+    if (btn) btn.classList.remove('active');
+  });
+  if (currentUser) {
+    const myReactions = await getMyResonances([letterId]);
+    const myTypes = myReactions.get(letterId) || new Set();
+    ['star','resonance','boost'].forEach(type => {
+      const btn = document.querySelector(`#signal-reactions .reaction-btn[data-type="${type}"]`);
+      if (btn) btn.classList.toggle('active', myTypes.has(type));
+    });
+  }
+}
+
+function closeSignal() {
+  document.getElementById('signal-overlay').classList.remove('show');
+  currentSignalLetter = null;
+}
+
+
+
+let signalRaf;
+function startSignalAnim() {
+  const cv = document.getElementById('signal-canvas-full');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  const ctx = cv.getContext('2d');
+  let t = 0;
+  function draw() {
+    ctx.fillStyle = 'rgba(3,4,13,0.4)'; ctx.fillRect(0,0,cv.width,cv.height);
+    t += 0.03;
+    const cx = cv.width/2, cy = cv.height*0.38;
+    for (let i=0;i<3;i++) {
+      const r = ((t*35+i*55)%200);
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(127,207,170,${(1-r/200)*0.3})`; ctx.lineWidth=0.8; ctx.stroke();
+    }
+    const cols = Math.floor(cv.width/3);
+    for(let i=0;i<cols;i++) {
+      const x=i/cols*cv.width;
+      const n=(Math.sin(i*0.3+t*0.7)+Math.sin(i*0.07+t*1.1))*0.5;
+      const h=(0.5+n*0.5)*60;
+      ctx.fillStyle=`rgba(100,160,220,0.06)`; ctx.fillRect(x,cy+30-h/2,2,h);
+    }
+    signalRaf = requestAnimationFrame(draw);
+  }
+  if (signalRaf) cancelAnimationFrame(signalRaf);
+  draw();
+}
+
+function typeText(elId, text, cb) {
+  const el = document.getElementById(elId);
+  let i = 0;
+  function step() {
+    if (i<=text.length) { el.textContent=text.slice(0,i); i++; setTimeout(step, 40+Math.random()*40); }
+    else if (cb) cb();
+  }
+  step();
+}
+
+// UTILS
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+checkSession();
+</script>
+</body>
+</html>
